@@ -1,3 +1,10 @@
+//
+//  ImageCache.swift
+//  Recipes
+//
+//  Created by Bruke Wondessen on 12/11/24.
+//
+
 import Foundation
 import SwiftUI
 import Combine
@@ -10,7 +17,6 @@ class ImageCache {
     private let cacheDirectory: URL
     
     private init() {
-        // Get a URL for disk cache directory (in the app's document directory)
         cacheDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("ImageCache", isDirectory: true)
         
@@ -20,12 +26,10 @@ class ImageCache {
     }
     
     func cachedImage(forKey key: String) -> UIImage? {
-        // First, check memory cache
         if let cachedImage = memoryCache.object(forKey: key as NSString) {
             return cachedImage
         }
         
-        // If not in memory, check the disk cache
         let fileURL = cacheDirectory.appendingPathComponent(key)
         if let imageData = try? Data(contentsOf: fileURL), let image = UIImage(data: imageData) {
             // Store the image in memory cache
@@ -37,10 +41,8 @@ class ImageCache {
     }
     
     func saveImageToCache(_ image: UIImage, forKey key: String) {
-        // Save to memory cache
         memoryCache.setObject(image, forKey: key as NSString)
         
-        // Save to disk cache
         let fileURL = cacheDirectory.appendingPathComponent(key)
         if let data = image.pngData() {
             try? data.write(to: fileURL)

@@ -11,7 +11,7 @@ struct RecipeListView: View {
     @StateObject private var recipeViewModel: RecipeViewModel = RecipeViewModel()
     
     @State private var path: [String] = [String]()
-    
+    @State private var searchText: String = ""
     @State private var showAlert: Bool = false
     let alertTitle = "Oops... There was a network error"
     
@@ -24,14 +24,15 @@ struct RecipeListView: View {
         NavigationStack {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 25) {
-                    ForEach(recipeViewModel.recipes) { recipe in
-                        RecipeRowView(photo: recipe.photoURLLarge, name: recipe.name, cuisine: recipe.cuisine)
+                    ForEach(searchResults) { recipe in
+                        RecipeView(photo: recipe.photoURLLarge, name: recipe.name, cuisine: recipe.cuisine)
                     }
                 }
                 .navigationTitle("Recipes")
                 .navigationBarTitleDisplayMode(.inline)
                 .scrollContentBackground(.hidden)
             }
+            .searchable(text: $searchText)
         }
         .task {
             do {
@@ -41,6 +42,14 @@ struct RecipeListView: View {
             }
         }
         .alert(alertTitle, isPresented: $showAlert) { }
+    }
+    
+    var searchResults: [Recipe] {
+        if searchText.isEmpty {
+            return recipeViewModel.recipes
+        } else {
+            return recipeViewModel.recipes.filter { $0.name.lowercased().contains(searchText.lowercased()) }
+        }
     }
 }
 
