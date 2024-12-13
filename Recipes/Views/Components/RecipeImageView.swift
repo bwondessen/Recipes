@@ -23,37 +23,44 @@ struct RecipeImageView: View {
             } else {
                 ProgressView()
                     .onAppear {
-                        loadImage()
+                        Task {
+                            await loadImage()
+                        }
                     }
             }
         }
     }
     
-    private func loadImage() {
+    private func loadImage() async {
         if let cachedImage = cache.cachedImage(forKey: url.absoluteString) {
             self.image = cachedImage
             return
         }
         
         isLoading = true
-        downloadImage()
+        await downloadImage()
     }
     
-    private func downloadImage() {
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil, let downloadedImage = UIImage(data: data) else {
+    private func downloadImage() async {
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            guard let downloadedImage = UIImage(data: data) else {
                 return
             }
             
             cache.saveImageToCache(downloadedImage, forKey: url.absoluteString)
             
+            // Update the UI on the main thread
             DispatchQueue.main.async {
                 self.image = downloadedImage
                 self.isLoading = false
             }
+        } catch {
+            // Handle error (you can display an error image or message)
+            DispatchQueue.main.async {
+                self.isLoading = false
+            }
         }
-        
-        task.resume()
     }
 }
 

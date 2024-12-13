@@ -27,6 +27,7 @@ struct CategoryView: View {
         .background(isActive ? .green : .gray.opacity(0.1))
         .clipShape(.rect(cornerRadius: 10))
         .padding(.trailing, 3.5)
+        .foregroundStyle(.primary)
     }
 }
 

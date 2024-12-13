@@ -45,6 +45,7 @@ struct RecipeView: View {
                                         .background(RoundedRectangle(cornerRadius: 10).fill(.white))
                                         .padding(10)
                                 }
+                                .foregroundStyle(.primary)
                             }
                         }
                     )
@@ -58,9 +59,10 @@ struct RecipeView: View {
                 HStack {
                     Text(cuisine)
                         .font(.callout)
-                        .foregroundStyle(.black.opacity(0.65))
+                        .foregroundStyle(.gray)
                 }
             }
+            .foregroundStyle(.primary)
         }
         .frame(width: UIScreen.main.bounds.width * 0.45)
     }

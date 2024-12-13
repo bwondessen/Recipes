@@ -13,12 +13,11 @@ struct RecipeListView: View {
     @State private var path: [String] = [String]()
     @State private var searchText: String = ""
     @State private var selectedIndex: Int = 0
-    @State private var showAlert: Bool = false
+    @State private var isDarkMode: Bool = false
     
     let alertTitle = "Oops... There was a network error"
     let categories: [String] = ["All", "American", "British", "Canadian", "French", "Italian", "Polish"]
     let categoryIcons: [String] = ["⭐️", "🍦", "🍪", "🍫", "🍰", "🍮", "🍨"]
-    
     
     let columns: [GridItem] = [
         GridItem(.flexible(), spacing: -15),
@@ -26,42 +25,86 @@ struct RecipeListView: View {
     ]
     
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
-                        ForEach(0..<categories.count, id: \.self) { i in
-                            CategoryView(isActive: i == selectedIndex, category: categories[i], categoryIcon: categoryIcons[i])
-                                .onTapGesture {
-                                    selectedIndex = i
-                                }
-                                .onChange(of: searchText) {
-                                    selectedIndex = !searchText.isEmpty ? 0 : selectedIndex
-                                }
+        if !recipeViewModel.isError {
+            NavigationStack {
+                ScrollView {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack {
+                            ForEach(0..<categories.count, id: \.self) { i in
+                                CategoryView(isActive: i == selectedIndex, category: categories[i], categoryIcon: categoryIcons[i])
+                                    .onTapGesture {
+                                        selectedIndex = i
+                                    }
+                                    .onChange(of: searchText) {
+                                        selectedIndex = !searchText.isEmpty ? 0 : selectedIndex
+                                    }
+                            }
+                        }
+                        .padding()
+                    }
+                    
+                    LazyVGrid(columns: columns, spacing: 25) {
+                        ForEach(searchResults) { recipe in
+                            RecipeView(photo: recipe.photoURLLarge, name: recipe.name, cuisine: recipe.cuisine, youtuebURL: recipe.youtubeURL ?? "https://youtube.com", sourceURL: recipe.sourceURL ?? "https://google.com")
                         }
                     }
-                    .padding()
+                    .navigationTitle("Recipes")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .scrollContentBackground(.hidden)
                 }
-                
-                LazyVGrid(columns: columns, spacing: 25) {
-                    ForEach(searchResults) { recipe in
-                        RecipeView(photo: recipe.photoURLLarge, name: recipe.name, cuisine: recipe.cuisine, youtuebURL: recipe.youtubeURL ?? "https://youtube.com", sourceURL: recipe.sourceURL ?? "https://google.com")
+                .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
+                .refreshable {
+                    // Trigger the refresh when the user pulls down
+                    await recipeViewModel.refreshRecipes()
+                }
+                .refreshable {
+                    await recipeViewModel.refreshRecipes()
+                }
+                .task {
+                    await recipeViewModel.refreshRecipes()
+                }
+                .alert(alertTitle, isPresented: $recipeViewModel.isError) { }
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            Task {
+                                isDarkMode = !isDarkMode
+                            }
+                        }) {
+                            Image(systemName: isDarkMode ? "sun.max" : "moon.fill")
+                                .foregroundStyle(isDarkMode ? .yellow : .purple)
+                                .bold()
+                        }
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: {
+                            Task {
+                                await recipeViewModel.refreshRecipes()
+                            }
+                        }) {
+                            Image(systemName: "arrow.clockwise")
+                                .foregroundStyle(isDarkMode ? .white : .black)
+                                .bold()
+                        }
                     }
                 }
-                .navigationTitle("Recipes")
-                .navigationBarTitleDisplayMode(.inline)
-                .scrollContentBackground(.hidden)
+                .preferredColorScheme(isDarkMode ? .dark : .light)
             }
-            .searchable(text: $searchText)
-        }
-        .task {
-            do {
-                try await recipeViewModel.fetchRecipes()
-            } catch {
-                showAlert = true
+        } else {
+            VStack {
+                Image("ErrorImage")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 350, height: 350)
+                
+                Text("There was a network error...")
+                    .font(.system(.headline, design: .serif))
+                
+                Text("Our team is currently working to resolve the issue!")
+                    .multilineTextAlignment(.center)
+                    .padding()
             }
         }
-        .alert(alertTitle, isPresented: $showAlert) { }
     }
     
     var searchResults: [Recipe] {
@@ -74,6 +117,7 @@ struct RecipeListView: View {
         }
     }
 }
+
 
 #Preview {
     RecipeListView()
