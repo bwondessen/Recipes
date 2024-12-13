@@ -13,7 +13,7 @@ struct RecipeListView: View {
     @State private var path: [String] = [String]()
     @State private var searchText: String = ""
     @State private var selectedIndex: Int = 0
-    @State private var isDarkMode: Bool = false
+    @State private var isDarkMode: Bool = UserDefaults.standard.bool(forKey: "isDarkMode")
     
     let alertTitle = "Oops... There was a network error"
     let categories: [String] = ["All", "American", "British", "Canadian", "French", "Italian", "Polish"]
@@ -54,10 +54,6 @@ struct RecipeListView: View {
                 }
                 .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
                 .refreshable {
-                    // Trigger the refresh when the user pulls down
-                    await recipeViewModel.refreshRecipes()
-                }
-                .refreshable {
                     await recipeViewModel.refreshRecipes()
                 }
                 .task {
@@ -66,22 +62,18 @@ struct RecipeListView: View {
                 .alert(alertTitle, isPresented: $recipeViewModel.isError) { }
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
-                            Task {
-                                isDarkMode = !isDarkMode
-                            }
-                        }) {
+                        Button(action: toggleDarkMode) {
                             Image(systemName: isDarkMode ? "sun.max" : "moon.fill")
                                 .foregroundStyle(isDarkMode ? .yellow : .purple)
                                 .bold()
                         }
                     }
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(action: {
+                        Button {
                             Task {
                                 await recipeViewModel.refreshRecipes()
                             }
-                        }) {
+                        } label: {
                             Image(systemName: "arrow.clockwise")
                                 .foregroundStyle(isDarkMode ? .white : .black)
                                 .bold()
@@ -116,8 +108,12 @@ struct RecipeListView: View {
             return recipeViewModel.recipes.filter { $0.cuisine.lowercased().contains(categories[selectedIndex].lowercased()) }
         }
     }
+    
+    private func toggleDarkMode() {
+        isDarkMode.toggle()
+        UserDefaults.standard.set(isDarkMode, forKey: "isDarkMode")
+    }
 }
-
 
 #Preview {
     RecipeListView()
