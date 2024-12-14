@@ -19,7 +19,7 @@ One of the most important aspects of software development is ensuring that data 
 Having a clean and organized architecture is imperative because it allows the app to scale. A clear separation of concerns also makes unit testing much easier, further increasing scalability. This approach results in more organized and readable code, which is crucial when working in a team environment.
 
 UI/UX is critical to the success of any app. A poorly designed interface can be a dealbreaker for many users. Accessibility is always at the forefront of my design decisions. For example, I made the app as intuitive and user-friendly as possible by offering users different ways to perform tasks, such as:
-  * Providing filtering options for categories.
+  * Providing filtering by categories.
   * Allowing users to refresh data either by tapping a button or pulling down on the screen.
   * Ensuring compatibility with both dark and light modes. 
 
