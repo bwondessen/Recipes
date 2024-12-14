@@ -7,7 +7,6 @@
 
 import Foundation
 import SwiftUI
-import Combine
 
 class ImageCache {
     static let shared = ImageCache()
@@ -32,7 +31,6 @@ class ImageCache {
         
         let fileURL = cacheDirectory.appendingPathComponent(key)
         if let imageData = try? Data(contentsOf: fileURL), let image = UIImage(data: imageData) {
-            // Store the image in memory cache
             memoryCache.setObject(image, forKey: key as NSString)
             return image
         }
@@ -49,3 +47,4 @@ class ImageCache {
         }
     }
 }
+

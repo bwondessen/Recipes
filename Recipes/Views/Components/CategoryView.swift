@@ -11,17 +11,12 @@ struct CategoryView: View {
     let isActive: Bool
     let category: String
     let categoryIcon: String
+    let iconFontSize: CGFloat = 32
     
     var body: some View {
         VStack {
-            Text(categoryIcon)
-                .font(.title)
-            
-            Text(category)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundStyle(isActive ? .white : .primary)
-                .lineLimit(1)
+            CategoryIconView(icon: categoryIcon, fontSize: iconFontSize)
+            CategoryNameView(category: category, isActive: isActive)
         }
         .frame(width: UIScreen.main.bounds.width * 0.20, height: UIScreen.main.bounds.height * 0.10)
         .background(isActive ? .green : .gray.opacity(0.1))
@@ -31,6 +26,30 @@ struct CategoryView: View {
     }
 }
 
+struct CategoryIconView: View {
+    let icon: String
+    let fontSize: CGFloat
+    
+    var body: some View {
+        Text(icon)
+            .font(.system(size: fontSize))
+    }
+}
+
+struct CategoryNameView: View {
+    let category: String
+    let isActive: Bool
+    
+    var body: some View {
+        Text(category)
+            .font(.subheadline)
+            .fontWeight(.medium)
+            .foregroundStyle(isActive ? .white : .primary)
+            .lineLimit(1)
+    }
+}
+
 #Preview {
     CategoryView(isActive: false, category: "All", categoryIcon: "🍦")
 }
+

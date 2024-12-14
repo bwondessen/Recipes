@@ -6,30 +6,56 @@
 //
 
 import XCTest
+@testable import Recipes
 
-final class NetworkingTests: XCTestCase {
-
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+final class RecipeViewModelTests: XCTestCase {
+    private var viewModel: RecipeViewModel!
+    private var mockService: MockRecipeService!
+    
+    override func setUp() {
+        super.setUp()
+        mockService = MockRecipeService()
+        viewModel = RecipeViewModel(recipeService: mockService)
     }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    
+    override func tearDown() {
+        mockService = nil
+        viewModel = nil
+        super.tearDown()
     }
-
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    
+    func testFetchRecipes_SuccessfulResponse() async {
+        let mockRecipe = Recipe(
+            id: "1",
+            cuisine: "American",
+            name: "New York Cheesecake",
+            photoURLLarge: "https://d3jbb8n5wk0qxi.cloudfront.net/photos/9d257442-51c8-45c7-807a-e6132baa8fce/large.jpg",
+            photoURLSmall: "https://d3jbb8n5wk0qxi.cloudfront.net/photos/9d257442-51c8-45c7-807a-e6132baa8fce/small.jpg",
+            sourceURL: "https://www.bbcgoodfood.com/recipes/2869/new-york-cheesecake",
+            uuid: "b63fbae1-f5d1-41a7-a030-1a3a556f4c57",
+            youtubeURL: "https://www.youtube.com/watch?v=tspdJ6hxqnc"
+        )
+        mockService.mockRecipes = [mockRecipe]
+        
+        await viewModel.fetchRecipes()
+        
+        XCTAssertFalse(viewModel.isError)
     }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    
+    func testFetchRecipes_EmptyResponse() async {
+        mockService.mockRecipes = []
+        
+        await viewModel.fetchRecipes()
+        
+        XCTAssertEqual(viewModel.recipes.count, 0)
     }
-
+    
+    func testFetchRecipes_FailureResponse() async {
+        mockService.shouldReturnError = true
+        
+        await viewModel.fetchRecipes()
+        
+        XCTAssertFalse(viewModel.isError)
+    }
 }
+

@@ -8,60 +8,35 @@
 import SwiftUI
 
 class RecipeViewModel: ObservableObject {
-    @Published var recipes: [Recipe] = [Recipe]()
+    @Published var recipes: [Recipe] = []
     @Published var isError: Bool = false
     
-    func fetchRecipes() async throws {
-        let endpoint: String = "https://d3jbb8n5wk0qxi.cloudfront.net/recipes.json"
-        
-        guard let url = URL(string: endpoint) else {
-            DispatchQueue.main.async {
-                self.isError = true
-            }
-            throw NetworkingErrors.invalidURL
-        }
-        
+    private let recipeService: RecipeFetching
+    
+    init(recipeService: RecipeFetching = RecipeService()) {
+        self.recipeService = recipeService
+    }
+    
+    func fetchRecipes() async {
         do {
-            let (data, response) = try await URLSession.shared.data(from: url)
+            let fetchedRecipes = try await recipeService.fetchRecipes()
             
-            guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
-                DispatchQueue.main.async {
+            DispatchQueue.main.async {
+                if fetchedRecipes.isEmpty {
                     self.isError = true
+                    self.recipes = []
+                } else {
+                    self.isError = false
+                    self.recipes = fetchedRecipes
                 }
-                throw NetworkingErrors.invalidResponse
-            }
-            
-            do {
-                let data = try JSONDecoder().decode(Recipes.self, from: data)
-                
-                DispatchQueue.main.async {
-                    if data.recipes.isEmpty {
-                        self.isError = true // No recipes
-                    } else {
-                        self.recipes = data.recipes
-                    }
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    self.isError = true
-                }
-                throw NetworkingErrors.invalidData
             }
         } catch {
             DispatchQueue.main.async {
                 self.isError = true
+                self.recipes = []
             }
-            throw NetworkingErrors.invalidURL
         }
     }
-    
-    func refreshRecipes() async {
-            do {
-                try await fetchRecipes()
-            } catch {
-                DispatchQueue.main.async {
-                    self.isError = true
-                }
-            }
-        }
 }
+
+

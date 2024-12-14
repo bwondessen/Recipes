@@ -50,13 +50,11 @@ struct RecipeImageView: View {
             
             cache.saveImageToCache(downloadedImage, forKey: url.absoluteString)
             
-            // Update the UI on the main thread
             DispatchQueue.main.async {
                 self.image = downloadedImage
                 self.isLoading = false
             }
         } catch {
-            // Handle error (you can display an error image or message)
             DispatchQueue.main.async {
                 self.isLoading = false
             }

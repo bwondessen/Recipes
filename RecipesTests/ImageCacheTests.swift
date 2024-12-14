@@ -6,30 +6,48 @@
 //
 
 import XCTest
+@testable import Recipes
 
 final class ImageCacheTests: XCTestCase {
-
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    private var imageCache: ImageCache!
+    private var testImage: UIImage!
+    private let testKey = "testKey"
+    
+    override func setUp() {
+        super.setUp()
+        imageCache = ImageCache.shared
+        testImage = UIImage(systemName: "star.fill")
     }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    
+    override func tearDown() {
+        let fileManager = FileManager.default
+        let cacheDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("ImageCache", isDirectory: true)
+        let fileURL = cacheDirectory.appendingPathComponent(testKey)
+        
+        if fileManager.fileExists(atPath: fileURL.path) {
+            try? fileManager.removeItem(at: fileURL)
         }
+        
+        testImage = nil
+        super.tearDown()
     }
+    
+    func testSaveAndRetrieveImageFromMemoryCache() {
+        imageCache.saveImageToCache(testImage, forKey: testKey)
+        
+        let cachedImage = imageCache.cachedImage(forKey: testKey)
+        XCTAssertNotNil(cachedImage)
+        XCTAssertEqual(cachedImage?.pngData(), testImage.pngData())
+    }
+}
 
+extension UIImage {
+    func resized(to size: CGSize) -> UIImage? {
+        UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+        self.draw(in: CGRect(origin: .zero, size: size))
+        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return resizedImage
+    }
 }
