@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct CategoryView: View {
+    @Binding var isDarkMode: Bool
+    
     let isActive: Bool
     let category: String
     let categoryIcon: String
@@ -19,7 +21,7 @@ struct CategoryView: View {
             CategoryNameView(category: category, isActive: isActive)
         }
         .frame(width: UIScreen.main.bounds.width * 0.20, height: UIScreen.main.bounds.height * 0.10)
-        .background(isActive ? .green : .gray.opacity(0.1))
+        .background(isActive ? .green : (isDarkMode ? .gray.opacity(0.3) : .gray.opacity(0.1)))
         .clipShape(.rect(cornerRadius: 10))
         .padding(.trailing, 3.5)
         .foregroundStyle(.primary)
@@ -50,6 +52,6 @@ struct CategoryNameView: View {
 }
 
 #Preview {
-    CategoryView(isActive: false, category: "All", categoryIcon: "🍦")
+    CategoryView(isDarkMode: .constant(false), isActive: false, category: "All", categoryIcon: "🍦")
 }
 

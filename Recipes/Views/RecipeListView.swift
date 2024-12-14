@@ -27,7 +27,7 @@ struct RecipeListView: View {
                 if recipeViewModel.isError {
                     ErrorView()
                 } else {
-                    CategoriesView(categories: categories, categoryIcons: categoryIcons, selectedIndex: $selectedIndex, searchText: $searchText)
+                    CategoriesView(categories: categories, categoryIcons: categoryIcons, selectedIndex: $selectedIndex, searchText: $searchText, isDarkMode: $isDarkMode)
                     
                     VStack {
                         Spacer().frame(height: 12)
@@ -54,7 +54,7 @@ struct RecipeListView: View {
                     DarkModeToggleButton(isDarkMode: $isDarkMode)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    RefreshButton(recipeViewModel: recipeViewModel)
+                    RefreshButton(isDarkMode: $isDarkMode, recipeViewModel: recipeViewModel)
                 }
             }
             .preferredColorScheme(isDarkMode ? .dark : .light)
@@ -95,12 +95,13 @@ struct CategoriesView: View {
     let categoryIcons: [String]
     @Binding var selectedIndex: Int
     @Binding var searchText: String
+    @Binding var isDarkMode: Bool
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack {
                 ForEach(0..<categories.count, id: \.self) { i in
-                    CategoryView(isActive: i == selectedIndex, category: categories[i], categoryIcon: categoryIcons[i])
+                    CategoryView(isDarkMode: $isDarkMode, isActive: i == selectedIndex, category: categories[i], categoryIcon: categoryIcons[i])
                         .onTapGesture {
                             selectedIndex = i
                         }
@@ -145,6 +146,8 @@ struct DarkModeToggleButton: View {
 }
 
 struct RefreshButton: View {
+    @Binding var isDarkMode: Bool
+    
     let recipeViewModel: RecipeViewModel
     
     var body: some View {
@@ -154,7 +157,7 @@ struct RefreshButton: View {
             }
         } label: {
             Image(systemName: "arrow.clockwise")
-                .foregroundStyle(.black)
+                .foregroundStyle(isDarkMode ? .white : .black)
                 .bold()
         }
     }
